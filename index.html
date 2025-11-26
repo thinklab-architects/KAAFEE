@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Architect Fee Calculator</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #020617;
+        --bg-soft: #0f172a;
+        --accent: #38bdf8;
+        --accent-soft: rgba(56, 189, 248, 0.18);
+        --text-main: #e5e7eb;
+        --text-muted: #9ca3af;
+        --radius: 16px;
+        --radius-pill: 999px;
+        --border: rgba(148, 163, 184, 0.45);
+        --shadow: 0 18px 40px rgba(15, 23, 42, 0.9);
+        --font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: stretch;
+        padding: 16px;
+        font-family: var(--font);
+        background: radial-gradient(circle at top, #0b1120 0, #020617 55%),
+          radial-gradient(circle at bottom, #020617 0, #000 60%);
+        color: var(--text-main);
+      }
+      .wrap { width: 100%; max-width: 900px; margin: auto; }
+      header { text-align: center; margin-bottom: 14px; }
+      .title {
+        margin: 0 0 4px;
+        font-size: 1.55rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-weight: 600;
+        background: linear-gradient(120deg, #e5e7eb, #7dd3fc, #a855f7);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .subtitle { margin: 0; font-size: 0.82rem; color: var(--text-muted); }
+      .card {
+        position: relative;
+        background: radial-gradient(circle at top left, var(--accent-soft), transparent 60%), var(--bg-soft);
+        border-radius: 22px;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        padding: 16px 14px 18px;
+      }
+      .tag-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+        padding: 0 4px;
+      }
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: var(--radius-pill);
+        border: 1px solid rgba(56, 189, 248, 0.7);
+        background: linear-gradient(120deg, rgba(56, 189, 248, 0.25), rgba(56, 189, 248, 0.1));
+        font-size: 0.7rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #e0f2fe;
+        white-space: nowrap;
+      }
+      .tag-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: radial-gradient(circle, #e0f2fe 0, #38bdf8 60%, #0ea5e9);
+        box-shadow: 0 0 10px rgba(56, 189, 248, 0.9);
+      }
+      .tag-secondary { font-size: 0.7rem; color: var(--text-muted); }
+      .tabs {
+        margin: 6px 0 10px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+        padding: 3px;
+        border-radius: var(--radius-pill);
+        background: rgba(15, 23, 42, 0.96);
+        border: 1px solid var(--border);
+      }
+      .tab-button {
+        border: none;
+        border-radius: 999px;
+        padding: 8px 10px;
+        background: transparent;
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        min-height: 40px;
+        cursor: pointer;
+        transition: background 150ms ease-out, color 150ms ease-out, box-shadow 150ms ease-out, transform 120ms ease-out;
+      }
+      .tab-button span:first-child {
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .tab-button span:last-child { font-size: 0.7rem; }
+      .tab-button.active {
+        background: radial-gradient(circle at top left, var(--accent-soft), transparent 70%), rgba(15, 23, 42, 0.98);
+        color: var(--text-main);
+        box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.8);
+        transform: translateY(-0.5px);
+      }
+      .tab-pane {
+        margin-top: 8px;
+        border-radius: var(--radius);
+        background: rgba(15, 23, 42, 0.98);
+        border: 1px solid rgba(31, 41, 55, 0.9);
+        padding: 12px 10px 12px;
+      }
+      .tab-pane[hidden] { display: none; }
+      .section-title { font-size: 0.9rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 4px; }
+      .section-caption { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px; }
+      form { margin: 0; }
+      .grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+      .row-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      .field { display: flex; flex-direction: column; gap: 4px; }
+      label { font-size: 0.78rem; color: var(--text-muted); }
+      .input, select {
+        width: 100%;
+        border-radius: 10px;
+        padding: 8px 10px;
+        border: 1px solid rgba(51, 65, 85, 0.95);
+        background: #020617;
+        color: var(--text-main);
+        font-size: 0.82rem;
+        outline: none;
+      }
+      .input::placeholder { color: rgba(148, 163, 184, 0.7); }
+      .input:focus, select:focus {
+        border-color: rgba(56, 189, 248, 0.9);
+        box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.8);
+      }
+      select {
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: linear-gradient(45deg, transparent 50%, #6b7280 50%), linear-gradient(135deg, #6b7280 50%, transparent 50%);
+        background-position: right 10px center, right 4px center;
+        background-repeat: no-repeat;
+        background-size: 6px 6px, 6px 6px;
+      }
+      .hint { font-size: 0.7rem; color: var(--text-muted); }
+      .hint a { color: #7dd3fc; text-decoration: none; }
+      .hint a:hover { text-decoration: underline; }
+      .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+      .btn {
+        border-radius: var(--radius-pill);
+        border: none;
+        padding: 8px 14px;
+        font-size: 0.8rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+      }
+      .btn-primary { background: linear-gradient(135deg, #0ea5e9, #3b82f6); color: #0b1120; }
+      .btn-secondary { background: transparent; color: var(--text-main); border: 1px solid var(--border); }
+      .result-card {
+        margin-top: 14px;
+        padding: 10px 10px 10px;
+        border-radius: 12px;
+        border: 1px solid rgba(34, 197, 94, 0.55);
+        background: rgba(15, 23, 42, 0.98);
+      }
+      .result-row { display: flex; justify-content: space-between; font-size: 0.8rem; padding: 3px 0; }
+      .result-label { color: var(--text-muted); }
+      .result-value { font-variant-numeric: tabular-nums; text-align: right; }
+      .result-total { font-weight: 600; color: #bbf7d0; }
+      .pdf-row {
+        margin-top: 14px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(15, 23, 42, 0.9);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+      .pdf-note { font-size: 0.7rem; color: var(--text-muted); }
+      .footer { margin-top: 8px; font-size: 0.7rem; color: var(--text-muted); text-align: right; }
+      @media (min-width: 720px) {
+        body { padding: 24px; }
+        .card { padding-inline: 18px; }
+        .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNa5HqBT2nb1PSGjZCq8DWZvrT3plR+KysoP3nLNG0xdQHIosCq4ZD0Q0p2hb54RDop2Ey5Wlx8Zg5HRKK6Qmw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-/pKQHj7KpIbivYjry8RhcNqD9j0cTFOJV2GRvIeA2GKRbIqO6RzJLvfCqD0C1y08QMWXqa7N5v3mP9XQhXvF4g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  </head>
+  <body>
+    <div class="wrap" id="pdf-root">
+      <header>
+        <h1 class="title">Architect Fee Calculator</h1>
+        <p class="subtitle">高雄市建築物工程造價標準 ＋ 綠建築設備及設施代金試算</p>
+      </header>
+      <section class="card">
+        <div class="tag-row">
+          <div class="tag"><span class="tag-dot"></span><span>KAA · Kaohsiung</span></div>
+          <div class="tag-secondary" id="active-service-label">Service 1 · 建築工程造價</div>
+        </div>
+        <nav class="tabs" role="tablist">
+          <button type="button" class="tab-button active" data-tab="service1" aria-selected="true"><span>Service 1</span><span>建築物工程造價</span></button>
+          <button type="button" class="tab-button" data-tab="service2" aria-selected="false"><span>Service 2</span><span>綠建築設備及設施代金</span></button>
+        </nav>
+        <section id="service1" class="tab-pane" aria-label="建築物工程造價">
+          <div class="section-title">建築物工程造價</div>
+          <div class="section-caption">依高雄市建築物工程造價標準表：建築面積 × 單價（元/㎡）</div>
+          <form id="service1-form">
+            <div class="grid">
+              <div class="field">
+                <label for="s1-project">案件名稱（選填）</label>
+                <input id="s1-project" class="input" type="text" placeholder="例如：○○工廠新建工程" />
+              </div>
+              <div class="field">
+                <label for="s1-structure">結構類別</label>
+                <select id="s1-structure">
+                  <option value="">請選擇（做為備註）</option>
+                  <option value="rc_steel">鋼筋混凝土 / 鋼骨鋼筋混凝土 / 鋼骨</option>
+                  <option value="src_high">鋼骨鋼筋混凝土高層</option>
+                  <option value="steel">鋼骨結構</option>
+                  <option value="rc_brick">鋼筋混凝土加強磚造</option>
+                  <option value="brick_wood_stone">磚造・木造・石造</option>
+                  <option value="fence">圍牆</option>
+                  <option value="solar">太陽能光電設施</option>
+                  <option value="other">其他（於備註說明）</option>
+                </select>
+              </div>
+            </div>
+            <div class="row-2" style="margin-top:10px">
+              <div class="field">
+                <label for="s1-floors">樓層數</label>
+                <input id="s1-floors" class="input" type="number" inputmode="numeric" min="1" step="1" placeholder="例如：5" />
+              </div>
+              <div class="field">
+                <label for="s1-area">建築面積（㎡）</label>
+                <input id="s1-area" class="input" type="number" inputmode="decimal" min="0" step="0.01" placeholder="請輸入總樓地板面積" />
+              </div>
+            </div>
+            <div class="field" style="margin-top:10px">
+              <label for="s1-unit">法定工程造價單價（元/㎡）</label>
+              <input id="s1-unit" class="input" type="number" inputmode="decimal" min="0" step="1" placeholder="請依標準表填入" />
+              <div class="hint">單價請參考 <a href="https://www.kaa.org.tw/images/servicekaa02_photo_1_2025.jpg" target="_blank" rel="noopener noreferrer">高雄市建築物工程造價標準表</a>。</div>
+            </div>
+            <div class="btn-row">
+              <button type="button" class="btn btn-primary" id="s1-calc">⟲ 計算工程造價</button>
+              <button type="reset" class="btn btn-secondary">清除</button>
+            </div>
+          </form>
+          <div class="result-card" aria-live="polite">
+            <div class="result-row"><div class="result-label">案件名稱</div><div class="result-value" id="s1-project-out">—</div></div>
+            <div class="result-row"><div class="result-label">結構 / 樓層</div><div class="result-value" id="s1-structure-out">—</div></div>
+            <div class="result-row"><div class="result-label">單價（元/㎡）</div><div class="result-value" id="s1-unit-out">—</div></div>
+            <div class="result-row"><div class="result-label">面積（㎡）</div><div class="result-value" id="s1-area-out">—</div></div>
+            <div class="result-row"><div class="result-label">法定工程造價總額</div><div class="result-value result-total" id="s1-total-out">—</div></div>
+          </div>
+        </section>
+        <section id="service2" class="tab-pane" aria-label="綠建築設備及設施代金" hidden>
+          <div class="section-title">綠建築設備及設施代金</div>
+          <div class="section-caption">參考「申請綠建築設備及設施經費繳納代金計算公式表」</div>
+          <form id="service2-form">
+            <div class="grid">
+              <div class="field">
+                <label for="s2-unit">建築物法定工程造價單價（元/㎡）</label>
+                <input id="s2-unit" class="input" type="number" inputmode="decimal" min="0" step="1" placeholder="可由 Service 1 帶入" />
+              </div>
+              <div class="field">
+                <label for="s2-area">建築面積（㎡，選填）</label>
+                <input id="s2-area" class="input" type="number" inputmode="decimal" min="0" step="0.01" />
+              </div>
+            </div>
+            <div class="btn-row" style="margin-top:8px">
+              <button type="button" class="btn btn-secondary" id="s2-import">⇢ 帶入 Service 1 結果</button>
+            </div>
+            <hr style="border:none;border-top:1px solid #1f2937;margin:10px 0" />
+            <div class="field">
+              <label for="s2-lamp-count">1. 高效率照明設備：改善燈具數量（盞）</label>
+              <input id="s2-lamp-count" class="input" type="number" inputmode="decimal" min="0" step="1" />
+            </div>
+            <div class="field">
+              <label for="s2-electric">電價（元/度，經常費）</label>
+              <input id="s2-electric" class="input" type="number" inputmode="decimal" min="0" step="0.01" />
+              <div class="hint">公式：燈具數量 × 8hr/1000 × 30% × 電價 × 365天 × 5年 × 50%。</div>
+            </div>
+            <hr style="border:none;border-top:1px solid #1f2937;margin:10px 0" />
+            <div class="grid">
+              <div class="field">
+                <label for="s2-pv-req">2. 太陽光電：應設置面積（㎡，工廠類）</label>
+                <input id="s2-pv-req" class="input" type="number" inputmode="decimal" min="0" step="0.01" />
+              </div>
+              <div class="field">
+                <label for="s2-pv-act">實際設置面積（㎡）</label>
+                <input id="s2-pv-act" class="input" type="number" inputmode="decimal" min="0" step="0.01" />
+              </div>
+            </div>
+            <div class="field">
+              <label for="s2-pv-tariff">躉購費率（元/度，依能源局公告）</label>
+              <input id="s2-pv-tariff" class="input" type="number" inputmode="decimal" min="0" step="0.01" />
+            </div>
+            <hr style="border:none;border-top:1px solid #1f2937;margin:10px 0" />
+            <div class="grid">
+              <div class="field">
+                <label for="s2-garbage-req">3. 垃圾處理：規定垃圾存放空間（㎡）</label>
+                <input id="s2-garbage-req" class="input" type="number" inputmode="decimal" min="0" step="0.01" />
+              </div>
+              <div class="field">
+                <label for="s2-garbage-act">實際垃圾存放空間（㎡）</label>
+                <input id="s2-garbage-act" class="input" type="number" inputmode="decimal" min="0" step="0.01" />
+              </div>
+            </div>
+            <div class="hint">公式：［規定－實際］ × 建築物法定工程造價單價（元/㎡）。</div>
+            <div class="btn-row">
+              <button type="button" class="btn btn-primary" id="s2-calc">⟲ 計算綠建築代金</button>
+              <button type="reset" class="btn btn-secondary">清除</button>
+            </div>
+          </form>
+          <div class="result-card" aria-live="polite">
+            <div class="result-row"><div class="result-label">單價（元/㎡）</div><div class="result-value" id="s2-unit-out">—</div></div>
+            <div class="result-row"><div class="result-label">照明設備代金</div><div class="result-value" id="s2-light-out">—</div></div>
+            <div class="result-row"><div class="result-label">太陽光電代金</div><div class="result-value" id="s2-pv-out">—</div></div>
+            <div class="result-row"><div class="result-label">垃圾處理及存放空間代金</div><div class="result-value" id="s2-garbage-out">—</div></div>
+            <div class="result-row"><div class="result-label">合計</div><div class="result-value result-total" id="s2-total-out">—</div></div>
+          </div>
+        </section>
+        <div class="pdf-row">
+          <div class="pdf-note">產生 PDF 將輸出目前 Service 的輸入與計算結果。</div>
+          <button type="button" class="btn btn-secondary" id="pdf-button">⬇ Generate PDF</button>
+        </div>
+        <div class="footer">本工具僅供試算參考，實際金額以主管機關核定為準。</div>
+      </section>
+    </div>
+    <script>
+      (function () {
+        function fmtCurrency(v) {
+          if (v == null || isNaN(v)) return "—";
+          return "NT$ " + Number(v).toLocaleString("zh-TW", { maximumFractionDigits: 0 });
+        }
+        function fmtNumber(v, d) {
+          if (v == null || isNaN(v)) return "—";
+          return Number(v).toLocaleString("zh-TW", { maximumFractionDigits: d });
+        }
+        var state1 = { unit: null, area: null, total: null, structure: "", floors: null, project: "" };
+        var state2 = { lighting: 0, pv: 0, garbage: 0, unit: null, total: 0 };
+        var tabs = document.querySelectorAll(".tab-button");
+        var pane1 = document.getElementById("service1");
+        var pane2 = document.getElementById("service2");
+        var activeLabel = document.getElementById("active-service-label");
+        tabs.forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            var target = btn.getAttribute("data-tab");
+            tabs.forEach(function (b) {
+              var active = b === btn;
+              b.classList.toggle("active", active);
+              b.setAttribute("aria-selected", active ? "true" : "false");
+            });
+            pane1.hidden = target !== "service1";
+            pane2.hidden = target !== "service2";
+            if (target === "service1") {
+              activeLabel.textContent = "Service 1 · 建築工程造價";
+            } else {
+              activeLabel.textContent = "Service 2 · 綠建築設備及設施代金";
+            }
+          });
+        });
+        var s1Calc = document.getElementById("s1-calc");
+        s1Calc.addEventListener("click", function () {
+          var project = document.getElementById("s1-project").value.trim() || "未命名案件";
+          var structureSel = document.getElementById("s1-structure");
+          var structure = structureSel.value ? structureSel.options[structureSel.selectedIndex].textContent : "未指定";
+          var floorsRaw = document.getElementById("s1-floors").value;
+          var floors = floorsRaw ? parseInt(floorsRaw, 10) : null;
+          var area = parseFloat(document.getElementById("s1-area").value || "0");
+          var unit = parseFloat(document.getElementById("s1-unit").value || "0");
+          if (!area || !unit) {
+            alert("請輸入有效的面積與單價後再計算。");
+            return;
+          }
+          var total = area * unit;
+          state1 = { unit: unit, area: area, total: total, structure: structure, floors: floors, project: project };
+          document.getElementById("s1-project-out").textContent = project;
+          document.getElementById("s1-structure-out").textContent = structure + (floors ? "，" + floors + " 層" : "");
+          document.getElementById("s1-unit-out").textContent = fmtCurrency(unit) + " / ㎡";
+          document.getElementById("s1-area-out").textContent = fmtNumber(area, 2) + " ㎡";
+          document.getElementById("s1-total-out").textContent = fmtCurrency(total);
+        });
+        document.getElementById("s2-import").addEventListener("click", function () {
+          if (!state1.unit || !state1.area || !state1.total) {
+            alert("請先於 Service 1 完成工程造價計算。");
+            return;
+          }
+          document.getElementById("s2-unit").value = state1.unit;
+          document.getElementById("s2-area").value = state1.area;
+        });
+        document.getElementById("s2-calc").addEventListener("click", function () {
+          var unit = parseFloat(document.getElementById("s2-unit").value || "0");
+          if (!unit) {
+            alert("請先輸入建築物法定工程造價單價（元/㎡）。");
+            return;
+          }
+          var lampCount = parseFloat(document.getElementById("s2-lamp-count").value || "0");
+          var electric = parseFloat(document.getElementById("s2-electric").value || "0");
+          var pvReq = parseFloat(document.getElementById("s2-pv-req").value || "0");
+          var pvAct = parseFloat(document.getElementById("s2-pv-act").value || "0");
+          var pvTariff = parseFloat(document.getElementById("s2-pv-tariff").value || "0");
+          var garbageReq = parseFloat(document.getElementById("s2-garbage-req").value || "0");
+          var garbageAct = parseFloat(document.getElementById("s2-garbage-act").value || "0");
+          var lighting = 0;
+          if (lampCount > 0 && electric > 0) {
+            lighting = lampCount * (8 / 1000) * 0.3 * electric * 365 * 5 * 0.5;
+          }
+          var pv = 0;
+          var pvDiff = Math.max(pvReq - pvAct, 0);
+          if (pvDiff > 0 && pvTariff > 0) {
+            pv = pvDiff * 0.1 * pvTariff * 3.5 * 365 * 10 * 0.5;
+          }
+          var garbage = 0;
+          var gDiff = Math.max(garbageReq - garbageAct, 0);
+          if (gDiff > 0) {
+            garbage = gDiff * unit;
+          }
+          var total = lighting + pv + garbage;
+          state2 = { lighting: lighting, pv: pv, garbage: garbage, unit: unit, total: total };
+          document.getElementById("s2-unit-out").textContent = fmtCurrency(unit) + " / ㎡";
+          document.getElementById("s2-light-out").textContent = fmtCurrency(lighting);
+          document.getElementById("s2-pv-out").textContent = fmtCurrency(pv);
+          document.getElementById("s2-garbage-out").textContent = fmtCurrency(garbage);
+          document.getElementById("s2-total-out").textContent = fmtCurrency(total);
+        });
+        document.getElementById("pdf-button").addEventListener("click", function () {
+          var root = document.getElementById("pdf-root");
+          if (!root) return;
+          html2canvas(root, { scale: window.devicePixelRatio > 1 ? 2 : 1.5, useCORS: true, backgroundColor: "#020617" }).then(function (canvas) {
+            var imgData = canvas.toDataURL("image/png");
+            var jsPDFLib = window.jspdf && window.jspdf.jsPDF;
+            if (!jsPDFLib) {
+              alert("PDF 函式庫載入失敗，請重新整理後再試。");
+              return;
+            }
+            var pdf = new jsPDFLib("p", "mm", "a4");
+            var w = pdf.internal.pageSize.getWidth();
+            var h = (canvas.height * w) / canvas.width;
+            pdf.addImage(imgData, "PNG", 0, 0, w, h);
+            var ts = new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-");
+            pdf.save("architect-fee-" + ts + ".pdf");
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>
